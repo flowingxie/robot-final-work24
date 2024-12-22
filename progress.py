@@ -143,8 +143,20 @@ if __name__ == "__main__":
     ep_camera.start_video_stream(display=False)
     ep_arm = ep_robot.robotic_arm
     ep_arm.recenter().wait_for_completed()
-    grab(ep_arm, ep_robot.gripper, ep_robot.chassis)
-    place(ep_arm, ep_robot.gripper, ep_robot.chassis)
-    
+    # grab(ep_arm, ep_robot.gripper, ep_robot.chassis)
+    # place(ep_arm, ep_robot.gripper, ep_robot.chassis)
 
+    pid = setup(ep_robot, kp = 62, ki = 0.4, kd = 43)
+    # base_speed p i d
+    # 55, 62, 0.1, 55  稳定循迹,但第二个弯会过调 速度提升至50后，转弯后直线段会过调
+    # 80, 62, 0.1, 43  较快，出弯进直线调整慢，但是大致轨迹是直线的
+
+
+    ep_robot.chassis.move(x = -0.2, y = 0, xy_speed = 0.5).wait_for_completed()
+    move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='blue', base_speed=75, start_angle=180)
+
+    ep_robot.chassis.move(x = -0.2, y = 0, xy_speed = 0.5).wait_for_completed()
+    move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='blue', base_speed=80, start_angle=190)
+
+    ep_robot.close()
     
