@@ -9,6 +9,8 @@ def sub_data_handler(sub_info):
 
 def setup(ep_robot):
     global ep_sensor
+    # ep_robot = robot.Robot()
+    # ep_robot.initialize('ap')
     ep_sensor = ep_robot.sensor
     ep_sensor.sub_distance(freq = 5, callback = sub_data_handler)
 

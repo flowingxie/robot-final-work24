@@ -4,7 +4,7 @@ from yolov5 import YOLOv5
 import time
 from robomaster import robot, led
 
-mod_path = 'F:/X_code/bot/robot-final-work24/best.pt'
+mod_path = 'Demo/runs/train/exp9_ok/weights/best.pt'
 Yolo_v5 = YOLOv5(mod_path)
 ep_robot = robot.Robot()
 ep_robot.initialize('ap')
@@ -33,6 +33,7 @@ def detect(cv2img, show_results = False):
 
 def fruit():
     count = 0
+    start_time = time.time()
     while count < 10:
         img = ep_camera.read_cv2_image(strategy = "newest", timeout = 0.5)
         boxes, scores, categories, names = detect(img, show_results = False)
@@ -57,14 +58,16 @@ def fruit():
         if not flag:
             progress.seek(chassis = ep_robot.chassis, pos = 0, speed = 5, target = 580, kx = 4000, ky = 3000, max_speed = 0.15)
         cv2.waitKey(1)
+    end_time = time.time()
     ep_robot.chassis.drive_speed(x = 0, y = 0, z = 0)
     cv2.destroyAllWindows()
+    return end_time - start_time
 
 if __name__ == '__main__':
     ep_arm = ep_robot.robotic_arm
     ep_arm.recenter().wait_for_completed()
     ep_robot.led.set_led(comp = led.COMP_ALL, r = 255, g = 255, b = 255, effect = led.EFFECT_ON)
-    pid = progress.setup(ep_robot, kp = 62, ki = 0.2, kd = 43)
+    pid = progress.setup(ep_robot, kp = 145, ki = 6, kd = 105)
 
     ep_robot.gripper.open()
     time.sleep(1)
@@ -74,10 +77,11 @@ if __name__ == '__main__':
     time.sleep(1)
 
     print("first lap begin")
-    progress.move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='blue', base_speed=65, start_angle=180)
-    fruit()
+    progress.move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='red', base_speed=100, start_angle=180, end_dis = 1000)
+    time_dif = fruit()
     progress.grab(arm = ep_arm, gripper = ep_robot.gripper, chassis = ep_robot.chassis)
-    progress.move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='blue', base_speed=70, start_angle=190)
+    ep_robot.chassis.move(x = 0, y = time_dif / 10, z = 0, xy_speed = 0.5).wait_for_completed()
+    progress.move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='red', base_speed=100, start_angle=190, end_dis = 100)
     time.sleep(1)
     progress.place(arm = ep_robot.robotic_arm, gripper = ep_robot.gripper, chassis= ep_robot.chassis)
     print("first lap finished")
@@ -85,14 +89,16 @@ if __name__ == '__main__':
     time.sleep(1)
 
     print("second lap begin")
-    progress.move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='blue', base_speed=65, start_angle=180)
-    fruit()
+    progress.move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='red', base_speed=100, start_angle=180, end_dis = 1000)
+    time_dif = fruit()
     progress.grab(arm = ep_arm, gripper = ep_robot.gripper, chassis = ep_robot.chassis)
-    progress.move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='blue', base_speed=70, start_angle=190)
+    ep_robot.chassis.move(x = 0, y = time_dif / 10, z = 0, xy_speed = 0.7).wait_for_completed()
+    progress.move(arm=ep_arm,chassis=ep_robot.chassis, camera=ep_robot.camera, vision=ep_robot.vision, pid_ctrl=pid, target_color='red', base_speed=100, start_angle=190, end_dis = 100)
     time.sleep(1)
     progress.place(arm = ep_robot.robotic_arm, gripper = ep_robot.gripper, chassis= ep_robot.chassis)
     print("second lap finished")
 
     time.sleep(1)
 
-    del ep_robot
+    ep_camera.stop_video_stream()
+    ep_robot.close()
